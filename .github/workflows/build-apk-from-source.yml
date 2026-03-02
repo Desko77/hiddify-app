@@ -1,6 +1,9 @@
 name: Build APK from source (IPv6 fix)
 
 on:
+  push:
+    branches:
+      - fix/ipv6-tun-address
   workflow_dispatch:
 
 env:
