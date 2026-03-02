@@ -1,0 +1,121 @@
+name: Build APK from source (IPv6 fix)
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.38.5'
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Clean up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/lib/android/sdk/ndk/2*
+          sudo apt-get autoremove -y && sudo apt-get clean
+          df -h
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'hiddify-core/go.mod'
+          cache-dependency-path: 'hiddify-core/go.sum'
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r28c
+          add-to-path: true
+          link-to-sdk: true
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2.21.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install gomobile
+        run: |
+          go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.11
+          go install github.com/sagernet/gomobile/cmd/gobind@v0.1.11
+
+      - name: Build hiddify-core .aar from source
+        working-directory: hiddify-core
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          TAGS="with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_grpc,with_awg,tfogo_checklinkname0,with_naive_outbound,with_conntrack"
+          LDFLAGS="-w -s -checklinkname=0 -buildid="
+          gomobile bind -v \
+            -androidapi=21 \
+            -javapkg=com.hiddify.core \
+            -libname=hiddify-core \
+            -tags="$TAGS" \
+            -trimpath \
+            -ldflags="$LDFLAGS" \
+            -target=android \
+            -o bin/hiddify-core.aar \
+            github.com/sagernet/sing-box/experimental/libbox ./platform/mobile
+
+      - name: Place core library
+        run: |
+          mkdir -p android/app/libs
+          mv hiddify-core/bin/hiddify-core.aar android/app/libs/
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate translations
+        run: dart run slang
+
+      - name: Build APK (release, debug-signed)
+        run: |
+          flutter build apk \
+            --release \
+            --target-platform android-arm64 \
+            --split-per-abi \
+            --target lib/main.dart
+
+      - name: List outputs
+        run: |
+          find build/app/outputs -name "*.apk" -ls
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hiddify-ipv6-fix-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 14
