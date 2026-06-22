@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "appTitle": "Hiddify",
     "start": "Start",
@@ -42,7 +42,6 @@
     "exit": "Exit",
     "reset": "Reset",
     "done": "Done",
-    "search": "Search",
     "decline": "Decline",
     "agree": "Agree",
     "empty": "Empty",
@@ -51,6 +50,11 @@
     "timeout": "Timeout",
     "sort": "Sort",
     "dashboard": "Dashboard",
+    "disable": "Disable",
+    "psiphon": "Psiphon",
+    "profile": "Profile",
+    "configuration": "Configuration",
+    "file": "File",
     "interval": {
       "day": {
         "zero": "",
@@ -82,6 +86,9 @@
         "confirm": "Confirm import",
         "success": "Imported successfully",
         "failure": "Failed to import"
+      },
+      "autoSave": {
+        "success": "Changes auto-saved successfully"
       }
     }
   },
@@ -93,7 +100,7 @@
   "pages": {
     "home": {
       "title": "Home",
-      "quickSettings": "Quick settings"
+      "quickSettings": "Quick setting options"
     },
     "proxies": {
       "title": "Proxies",
@@ -231,76 +238,10 @@
       },
       "routing": {
         "title": "Routing",
-        "perAppProxy": {
-          "title": "Per-app proxy",
-          "hideSysApps": "Hide system apps",
-          "options": {
-            "import": {
-              "clipboard": "Import selection from clipboard",
-              "file": "Import selection from file",
-              "msg": "Importing will replace your current selections. Are you sure you want to continue?"
-            },
-            "export": {
-              "clipboard": "Copy selection to clipboard",
-              "file": "Export selection to file"
-            },
-            "shareToAll": "Share to all",
-            "clearAllSelections": "Clear all selections"
-          },
-          "modes": {
-            "all": "All",
-            "proxy": "Proxy",
-            "bypass": "Bypass",
-            "allMsg": "Proxy all apps",
-            "proxyMsg": "Proxy only selected apps",
-            "bypassMsg": "Do not proxy selected apps"
-          },
-          "autoSelection": {
-            "title": "Auto selection",
-            "performNow": "Perform now",
-            "resetToDefault": "Reset to default",
-            "autoUpdateInterval": "Auto update interval",
-            "toast": {
-              "success": "Auto apps selection completed successfully",
-              "failure": "Auto selection failed",
-              "regionNotFound": "Auto selection not found, region \"${region}\"",
-              "alreadyInAuto": "Your selections are already in the auto-list"
-            },
-            "dialog": {
-              "title": "Auto apps selection",
-              "msg": "The auto selection feature for per-app proxy was disabled due to the region change to \"${region}\""
-            }
-          }
-        },
-        "region": "Region",
-        "regions": {
-          "ir": "Iran (ir)",
-          "cn": "China (cn)",
-          "ru": "Russia (ru)",
-          "af": "Afghanistan (af)",
-          "id": "Indonesia (id)",
-          "tr": "Türkiye (tr)",
-          "br": "Brazil (br)",
-          "other": "Other"
-        },
-        "balancerStrategy": {
-          "title": "Balancer strategy",
-          "roundRobin": "Round robin",
-          "consistentHash": "Consistent hash",
-          "stickySession": "Sticky session"
-        },
-        "blockAds": "Block advertisements",
-        "bypassLan": "Bypass LAN",
-        "resolveDestination": "Resolve destination",
-        "ipv6Route": "IPv6 route",
-        "ipv6Modes": {
-          "disable": "Disable",
-          "enable": "Enable",
-          "prefer": "Preferred",
-          "only": "Exclusive"
-        },
         "routeRule": {
-          "title": "Route rules",
+          "empty": "No rules added yet\n\nTap the + button to create a new rule or choose from predefined rules",
+          "delete": "Delete rule",
+          "create": "Create new rule",
           "options": {
             "import": {
               "clipboard": "Import rules from clipboard",
@@ -312,12 +253,8 @@
             },
             "reset": "Reset rules"
           },
-          "deleteRule": "Delete rule",
-          "createRule": "Create new rule",
           "rule": {
             "title": "Rule",
-            "ruleChanged": "Rule changed",
-            "ruleChangedMsg": "Do you want to save your edits?",
             "onlyTunMode": "Available only in tun mode",
             "notAvailabeInThisPlatform": "Not available in this platform",
             "canNotBeEmpty": "Can not be empty",
@@ -327,7 +264,7 @@
             "validProcessName": "Valid \"Process Name\" like\n@:pages.settings.routing.routeRule.rule.validProcessNameEx",
             "validProcessPathEx": "C:\\Pro...\\chrome.exe\n/App.../Google Chrome\n/usr/lib.../chrome",
             "validProcessPath": "Valid \"Process Path\" like\n@:pages.settings.routing.routeRule.rule.validProcessPathEx",
-            "validPortRangeEx": "80 or 1-65000",
+            "validPortRangeEx": "80 or 1:65000",
             "validPortRange": "Valid \"Port\" or \"Port Range\" like\n@:pages.settings.routing.routeRule.rule.validPortRangeEx",
             "validIpCidrEx": "8.8.8.8 or 10.0.0.0/24",
             "validIpCidr": "Valid IP CIDR like\n@:pages.settings.routing.routeRule.rule.validIpCidrEx",
@@ -379,13 +316,86 @@
             "update": "Update value",
             "clearList": "Clear list",
             "clearListMsg": "All items are deleted"
+          }
+        },
+        "generalOptions": {
+          "title": "Route general options",
+          "region": "Region",
+          "regions": {
+            "ir": "Iran (ir)",
+            "cn": "China (cn)",
+            "ru": "Russia (ru)",
+            "af": "Afghanistan (af)",
+            "id": "Indonesia (id)",
+            "tr": "Türkiye (tr)",
+            "br": "Brazil (br)",
+            "other": "Other"
           },
-          "androidApps": {
-            "pageTitle": "Android apps",
-            "showSystemApps": "Show system apps",
-            "hideSystemApps": "Hide system apps",
-            "clearSelection": "Clear selection",
-            "uninstalled": "Uninstalled"
+          "balancerStrategy": {
+            "title": "Balancer strategy",
+            "roundRobin": "Round robin",
+            "consistentHash": "Consistent hash",
+            "stickySession": "Sticky session"
+          },
+          "resolveDestination": "Resolve destination",
+          "ipv6Route": "IPv6 route",
+          "ipv6Modes": {
+            "disable": "Disable",
+            "enable": "Enable",
+            "prefer": "Preferred",
+            "only": "Exclusive"
+          },
+          "perAppProxy": {
+            "title": "Per-app proxy",
+            "hideSysApps": "Hide system apps",
+            "options": {
+              "import": {
+                "clipboard": "Import selection from clipboard",
+                "file": "Import selection from file",
+                "msg": "Importing will replace your current selections. Are you sure you want to continue?"
+              },
+              "export": {
+                "clipboard": "Copy selection to clipboard",
+                "file": "Export selection to file"
+              },
+              "shareToAll": "Share to all",
+              "clearAllSelections": "Clear all selections"
+            },
+            "modes": {
+              "all": "All",
+              "proxy": "Proxy",
+              "bypass": "Bypass",
+              "allMsg": "Proxy all apps",
+              "proxyMsg": "Proxy only selected apps",
+              "bypassMsg": "Do not proxy selected apps"
+            },
+            "autoSelection": {
+              "title": "Auto selection",
+              "performNow": "Perform now",
+              "resetToDefault": "Reset to default",
+              "autoUpdateInterval": "Auto update interval",
+              "toast": {
+                "success": "Auto apps selection completed successfully",
+                "failure": "Auto selection failed",
+                "regionNotFound": "Auto selection not found, region \"${region}\"",
+                "alreadyInAuto": "Your selections are already in the auto-list"
+              },
+              "dialog": {
+                "title": "Auto apps selection",
+                "msg": "The auto selection feature for per-app proxy was disabled due to the region change to \"${region}\""
+              }
+            }
+          }
+        },
+        "predefinedRules": {
+          "title": "Predefined rules",
+          "ads": {
+            "name": "Block ads",
+            "description": ""
+          },
+          "bypassLan": {
+            "name": "Bypass LAN",
+            "description": ""
           }
         }
       },
@@ -395,7 +405,6 @@
         "remoteDnsDomainStrategy": "Remote DNS domain strategy",
         "directDns": "Outbound server resolver (direct)",
         "directDnsDomainStrategy": "Outbound domain strategy",
-        "enableDnsRouting": "Enable DNS routing",
         "enableFakeDns": "Enable fake DNS",
         "domainStrategy": {
           "auto": "Auto",
@@ -411,14 +420,12 @@
         "serviceModes": {
           "proxy": "Proxy service only",
           "systemProxy": "Set system proxy",
-          "tun": "VPN",
-          "tunService": "VPN service"
+          "tun": "VPN"
         },
         "shortServiceModes": {
           "proxy": "Proxy",
           "systemProxy": "System proxy",
-          "tun": "VPN",
-          "tunService": "VPN service"
+          "tun": "VPN"
         },
         "strictRoute": "Strict route",
         "tunImplementation": "Tun implementation",
@@ -431,7 +438,12 @@
         "tproxyPort": "Transparent proxy port",
         "directPort": "Direct port",
         "redirectPort": "Redirect port",
-        "allowConnectionFromLan": "Share VPN in local network"
+        "lanSharing": "VPN sharing",
+        "lanSharingPasswordNotSet": "Password not set",
+        "lanSharingPassword": "VPN sharing password",
+        "copyLink": "Copy link",
+        "qrCode": "QR Code",
+        "lanIPError": "Failed to get local IP address"
       },
       "tlsTricks": {
         "title": "TLS tricks",
@@ -453,27 +465,83 @@
           "size": "Padding size"
         }
       },
-      "warp": {
-        "title": "WARP",
-        "enable": "Enable WARP",
-        "generateConfig": "Generate WARP config",
-        "configGenerated": "Warp config is generated",
-        "missingConfig": "Missing WARP config",
-        "detourMode": "Detour mode",
-        "detourModes": {
-          "proxyOverWarp": "Detour proxies through WARP ",
-          "warpOverProxy": "Detour WARP through proxies",
-          "proxyOverWarpExplain": "Unblock proxies by WARP",
-          "warpOverProxyExplain": "Extra security by WARP"
+      "chain": {
+        "title": "Chain",
+        "subtitle": "Extra security & Unblocker",
+        "finalIp": "Final IP",
+        "levels": {
+          "app": {
+            "title": "App",
+            "msg": "Start point: Your app traffic enters the chain here and passes through the next layers to prepare for the final bypass"
+          },
+          "extraSecurity": {
+            "title": "Extra security",
+            "msg": "Adds an extra shield to keep your data private, even if your main profile is untrusted"
+          },
+          "mainProfile": {
+            "title": "Main profile"
+          },
+          "unblocker": {
+            "title": "Unblocker",
+            "msg": "Helps bypass network restrictions. If the helper connects, your main profile can still work even if it's currently blocked"
+          },
+          "filtering": {
+            "title": "Filtering",
+            "msg": "Final exit: After passing through the active layers (Extra Security, Main Profile, or Unblocker) and applying their effects, your traffic is finally routed to bypass local network filtering"
+          }
         },
-        "licenseKey": "License key",
-        "cleanIp": "Clean IP",
-        "port": "Port",
-        "noise": {
-          "count": "Noise count",
-          "mode": "Noise mode",
-          "size": "Noise size",
-          "delay": "Noise delay"
+        "warp": {
+          "missingConfig": "Missing WARP config",
+          "licenseKey": "License key",
+          "cleanIp": "Clean IP",
+          "port": "Port",
+          "noise": {
+            "count": "Noise count",
+            "mode": "Noise mode",
+            "size": "Noise size",
+            "delay": "Noise delay"
+          }
+        },
+        "psiphon": {
+          "selectServerRegion": "Select server region",
+          "regions": {
+            "auto": "@:common.auto",
+            "at": "Austria (at)",
+            "au": "Australia (au)",
+            "be": "Belgium (be)",
+            "bg": "Bulgaria (bg)",
+            "ca": "Canada (ca)",
+            "ch": "Switzerland (ch)",
+            "cz": "Czech Republic (cz)",
+            "de": "Germany (de)",
+            "dk": "Denmark (dk)",
+            "ee": "Estonia (ee)",
+            "es": "Spain (es)",
+            "fi": "Finland (fi)",
+            "fr": "France (fr)",
+            "gb": "United Kingdom (gb)",
+            "hr": "Croatia (hr)",
+            "hu": "Hungary (hu)",
+            "ie": "Ireland (ie)",
+            "in": "India (in)",
+            "it": "Italy (it)",
+            "jp": "Japan (jp)",
+            "lv": "Latvia (lv)",
+            "nl": "Netherlands (nl)",
+            "no": "Norway (no)",
+            "pl": "Poland (pl)",
+            "pt": "Portugal (pt)",
+            "ro": "Romania (ro)",
+            "rs": "Serbia (rs)",
+            "se": "Sweden (se)",
+            "sg": "Singapore (sg)",
+            "sk": "Slovakia (sk)",
+            "us": "United States (us)"
+          }
+        },
+        "profile": {
+          "selectProfile": "Select profile",
+          "conduitPairingId": "Conduit pairing ID"
         }
       }
     }
@@ -518,6 +586,10 @@
       "title": "Cloudflare WARP consent",
       "description(rich)": "Cloudflare WARP is a free WireGuard VPN provider. By enabling this option you are agreeing to the Cloudflare WARP's ${tos(Terms of service)} and ${privacy(Privacy policy)}."
     },
+    "psiphonLicense": {
+      "title": "Psiphon License Agreement",
+      "description(rich)": "By using Psiphon, you agree to the ${tos(Terms of Service)} and acknowledge the ${privacy(Privacy Policy)}. Please read them carefully before proceeding."
+    },
     "newVersion": {
       "title": "Update available",
       "msg": "A new version of @:common.appTitle is available. Would you like to update now?",
@@ -551,6 +623,14 @@
           "title": "Delete rule",
           "msg": "Are you sure you want to delete the \"$rulename\" rule?"
         }
+      },
+      "addProfileByDeepLinkWarning": {
+        "title": "Add profile?",
+        "message": "An external link from \"${host}\" is requesting to add a new profile. Do you want to import it?"
+      },
+      "importRouteRuleByDeepLinkWarning": {
+        "title": "Import route-rule?",
+        "message": "Importing route rules from untrusted sources can be a security risk\nOnly proceed if you trust this link"
       }
     },
     "experimentalNotice": {
@@ -606,8 +686,7 @@
     "disconnect": "Disconnect",
     "disconnecting": "Disconnecting...",
     "reconnect": "Reconnect",
-    "reconnectMsg": "Reconnecting for taking into account the changes...",
-    "secure": "Secured by WARP"
+    "reconnectMsg": "Reconnecting for taking into account the changes..."
   },
   "errors": {
     "unexpected": "Unexpected error",
@@ -639,8 +718,12 @@
       "invalidConfig": "Invalid configuration"
     },
     "warp": {
-      "missingLicense": "Warp license",
-      "missingLicenseMsg": "The selected profile uses the WARP feature; to use this feature, the WARP license must be agreed to."
+      "missingLicense": "Warp license required",
+      "missingLicenseMsg": "The selected profile uses the WARP feature; to use this feature, the WARP license must be agreed to"
+    },
+    "psiphon": {
+      "missingLicense": "Psiphon license required",
+      "missingLicenseMsg": "The selected profile uses the Psiphon feature; to use this feature, the Psiphon license must be agreed to"
     }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/core/utils/preferences_utils.dart';
+import 'package:hiddify/features/proxy/active/ip_widget.dart';
 import 'package:hiddify/features/settings/notifier/battery_optimization/battery_optimizations_notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -18,6 +19,7 @@ class ValuePreferenceWidget<T> extends HookConsumerWidget {
     this.inputToValue,
     this.digitsOnly = false,
     this.icon,
+    this.trailing,
   });
 
   final T value;
@@ -30,6 +32,7 @@ class ValuePreferenceWidget<T> extends HookConsumerWidget {
   final T? Function(String input)? inputToValue;
   final bool digitsOnly;
   final IconData? icon;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,6 +40,7 @@ class ValuePreferenceWidget<T> extends HookConsumerWidget {
       title: Text(title),
       subtitle: Text(presentValue?.call(value) ?? value.toString()),
       leading: icon != null ? Icon(icon) : null,
+      trailing: trailing,
       // material: (context, platform) => MaterialListTileData(
       enabled: enabled,
 
@@ -63,6 +67,23 @@ class ValuePreferenceWidget<T> extends HookConsumerWidget {
   }
 }
 
+class SwitchPreferenceWidget extends HookConsumerWidget {
+  const SwitchPreferenceWidget({super.key, required this.preference});
+
+  final StateNotifierProvider<StateNotifier<bool>, bool> preference;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final value = ref.watch(preference);
+    return Switch.adaptive(
+      value: value,
+      onChanged: (val) {
+        (ref.read(preference.notifier) as dynamic).update(val);
+      },
+    );
+  }
+}
+
 class ChoicePreferenceWidget<T> extends HookConsumerWidget {
   const ChoicePreferenceWidget({
     super.key,
@@ -75,6 +96,7 @@ class ChoicePreferenceWidget<T> extends HookConsumerWidget {
     this.icon,
     required this.presentChoice,
     this.validateInput,
+    this.autoUpdate = true,
     this.onChanged,
   });
 
@@ -87,6 +109,7 @@ class ChoicePreferenceWidget<T> extends HookConsumerWidget {
   final IconData? icon;
   final String Function(T value) presentChoice;
   final bool Function(String value)? validateInput;
+  final bool autoUpdate;
   final ValueChanged<T>? onChanged;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,6 +117,7 @@ class ChoicePreferenceWidget<T> extends HookConsumerWidget {
       title: Text(title),
       subtitle: Text(presentChoice(selected)),
       leading: icon != null ? Icon(icon) : null,
+      trailing: showFlag ? flagByTitle(presentChoice(selected), size: 40) : null,
       enabled: enabled,
       onTap: () async {
         final selection = await ref
@@ -107,11 +131,25 @@ class ChoicePreferenceWidget<T> extends HookConsumerWidget {
               onReset: preferences.reset,
             );
         if (selection == null) return;
-        final out = await preferences.update(selection);
+        if (autoUpdate) {
+          final out = await preferences.update(selection);
+          return out;
+        }
         onChanged?.call(selection);
-        return out;
       },
     );
+  }
+
+  static Widget? flagByTitle(String title, {double size = 32}) {
+    if (title.isEmpty) return null;
+    try {
+      final match = RegExp(r'\(([^)]+)\)$').firstMatch(title);
+      final countryCode = match?.group(1);
+      if (countryCode == null) return null;
+      return IPCountryFlag(countryCode: countryCode, size: size);
+    } catch (e) {
+      return null;
+    }
   }
 }
 

@@ -28,15 +28,20 @@ import 'package:meta/meta.dart';
 /// - local: fallback to protocol, extracted from content by protocol()
 
 class ProfileParser {
-  static const infiniteTrafficThreshold = 920_233_720_368;
+  // Synthetic sentinel assigned to `total` for "unlimited" traffic (subscription-userinfo total=0 or
+  // missing). It MUST stay above the 10 TB "unlimited" threshold the UI uses to decide whether to show
+  // "∞" (isInfinitSize() in lib/utils/number_formatters.dart, and profile_tile.dart). The previous
+  // value (~857 GiB) was below that gate, so total=0 rendered as a finite cap / "quota exceeded".
+  // See https://github.com/hiddify/hiddify-app/issues/1974 . 1000 TiB.
+  static const infiniteTrafficThreshold = 1_099_511_627_776_000;
   static const infiniteTimeThreshold = 92_233_720_368;
   static const allowedOverrideConfigs = [
     'connection-test-url',
     'direct-dns-address',
     'remote-dns-address',
-    'warp',
-    'warp2',
     'tls-tricks',
+    'chain-status',
+    'extra-security',
   ];
   static const allowedProfileHeaders = [
     'profile-title',
@@ -46,6 +51,7 @@ class ProfileParser {
     'support-url',
     'profile-web-page-url',
     'enable-warp',
+    'enable-psiphon',
     'enable-fragment',
   ];
 
@@ -66,7 +72,7 @@ class ProfileParser {
             cancelToken: CancelToken(),
             ref: _ref,
           );
-        }, (_, __) => ProfileFailure.unexpected())
+        }, (_, _) => const ProfileFailure.unexpected())
         .flatMap((_) => TaskEither.fromEither(populateHeaders(content: content)))
         .flatMap(
           (populatedHeaders) => TaskEither.fromEither(
@@ -338,16 +344,6 @@ class ProfileParser {
           }
         }
 
-        if (headers['enable-warp'].toString() == 'true' || profile.userOverride?.enableWarp == true) {
-          final value = {'enable': true, 'mode': 'warp_over_proxy'};
-          headers['warp'] = value;
-          headers['warp2'] = value;
-        }
-
-        if (headers['enable-fragment'].toString() == 'true' || profile.userOverride?.enableFragment == true) {
-          headers['tls-tricks'] = {'enable-fragment': true};
-        }
-
         final isAutoUpdateDisable = profile.userOverride?.isAutoUpdateDisable ?? false;
         ProfileOptions? options;
         if (profile.userOverride?.updateInterval case final int updateInterval
@@ -374,21 +370,9 @@ class ProfileParser {
           }
         }
 
-        headers.removeWhere(
-          (key, value) => !allowedOverrideConfigs.contains(key) || value == null || value.toString().isEmpty,
-        );
-
-        final profileOverrideStr = jsonEncode({for (final key in headers.keys) key: headers[key]});
-
         return profile.map(
-          remote: (rp) => rp.copyWith(
-            name: name,
-            lastUpdate: DateTime.now(),
-            options: options,
-            subInfo: subInfo,
-            profileOverride: profileOverrideStr,
-          ),
-          local: (lp) => lp.copyWith(name: name, lastUpdate: DateTime.now(), profileOverride: profileOverrideStr),
+          remote: (rp) => rp.copyWith(name: name, lastUpdate: DateTime.now(), options: options, subInfo: subInfo),
+          local: (lp) => lp.copyWith(name: name, lastUpdate: DateTime.now()),
         );
       }, ProfileFailure.unexpected);
 
@@ -421,6 +405,49 @@ class ProfileParser {
       };
     }
     return name ?? ProxyType.unknown.label;
+  }
+
+  static String profileOverrideHelper({required ProfileEntriesCompanion profile}) {
+    final populatedHeaders = profile.populatedHeaders.value;
+
+    Map<String, dynamic>? mPopulatedHeaders;
+    if (populatedHeaders != null) {
+      final m = jsonDecode(populatedHeaders) as Map;
+      mPopulatedHeaders = m.cast<String, dynamic>();
+    }
+
+    return ProfileParser.profileOverride(
+      populatedHeaders: mPopulatedHeaders,
+      userOverride: UserOverride.fromStr(profile.userOverride.value),
+    );
+  }
+
+  static String profileOverride({
+    required Map<String, dynamic>? populatedHeaders,
+    required UserOverride? userOverride,
+  }) {
+    final headers = Map<String, dynamic>.from(populatedHeaders ?? {});
+
+    if (headers['enable-warp'].toString() == 'true' || userOverride?.enableWarp == true) {
+      headers['chain-status'] = 'extra_security';
+      headers['extra-security'] = {'mode': 'warp'};
+    }
+
+    if (headers['enable-psiphon'].toString() == 'true' || userOverride?.enablePsiphon == true) {
+      headers['chain-status'] = 'extra_security';
+      headers['extra-security'] = {'mode': 'psiphon'};
+    }
+
+    if (headers['enable-fragment'].toString() == 'true' || userOverride?.enableFragment == true) {
+      headers['tls-tricks'] = {'enable-fragment': true};
+    }
+
+    headers.removeWhere(
+      (key, value) => !allowedOverrideConfigs.contains(key) || value == null || value.toString().isEmpty,
+    );
+
+    final profileOverrideStr = jsonEncode({for (final key in headers.keys) key: headers[key]});
+    return profileOverrideStr;
   }
 
   static Map<String, dynamic> applyProfileOverride(Map<String, dynamic> main, String? profileOverride) {
