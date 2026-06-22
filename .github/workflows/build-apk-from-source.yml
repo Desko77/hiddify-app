@@ -104,17 +104,47 @@ jobs:
       - name: Generate translations
         run: dart run slang
 
-      - name: Build APK (release, debug-signed)
+      - name: Setup release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 secret is missing - refusing to build (would produce an unstable debug-signed APK that cannot update installed app)"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=${STORE_PASSWORD}"
+            echo "keyAlias=${KEY_ALIAS}"
+            echo "keyPassword=${KEY_PASSWORD}"
+          } > android/key.properties
+          echo "Signing configured. Keystore size: $(wc -c < android/app/upload-keystore.jks) bytes"
+
+      - name: Build APK (release, signed)
         run: |
           flutter build apk \
             --release \
             --target-platform android-arm64 \
             --split-per-abi \
+            --build-number=$((50000 + GITHUB_RUN_NUMBER)) \
             --target lib/main.dart
 
       - name: List outputs
         run: |
           find build/app/outputs -name "*.apk" -ls
+
+      - name: Verify APK signing certificate
+        run: |
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT" -name apksigner 2>/dev/null | sort -V | tail -1)
+          echo "apksigner: $APKSIGNER"
+          for apk in build/app/outputs/flutter-apk/*.apk; do
+            echo "== $apk =="
+            "$APKSIGNER" verify --print-certs "$apk" 2>/dev/null | grep -i "digest\|signer" || echo "(could not read certs)"
+          done
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
