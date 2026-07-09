@@ -66,7 +66,9 @@ interface PlatformInterfaceWrapper : PlatformInterface {
             if (uid!=Process.INVALID_UID) {
                 val packages = Application.packageManager.getPackagesForUid(uid)
                 owner.userName = packages?.firstOrNull() ?: ""
-                owner.androidPackageName = owner.userName
+                // libbox >= 170d8315: ConnectionOwner.androidPackageName (single)
+                // became androidPackageNames, set via SetAndroidPackageNames(StringIterator).
+                owner.setAndroidPackageNames(StringArray((packages?.toList() ?: emptyList()).iterator()))
             }
             return owner
         } catch (e: Exception) {
