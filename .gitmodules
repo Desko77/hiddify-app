@@ -1,4 +1,4 @@
 [submodule "hiddify-core"]
 	path = hiddify-core
 	url = https://github.com/Desko77/hiddify-core.git
-	branch = fix/ipv6-tun-address
+	branch = fix/core-rebuild-jul2026

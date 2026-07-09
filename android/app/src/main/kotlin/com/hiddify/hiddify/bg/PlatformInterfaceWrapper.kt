@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import com.hiddify.hiddify.Application
 import com.hiddify.core.libbox.InterfaceUpdateListener
 import com.hiddify.core.libbox.Libbox
+import com.hiddify.core.libbox.NeighborUpdateListener
 import com.hiddify.core.libbox.NetworkInterfaceIterator
 import com.hiddify.core.libbox.PlatformInterface
 import com.hiddify.core.libbox.StringIterator
@@ -81,6 +82,22 @@ interface PlatformInterfaceWrapper : PlatformInterface {
 
     override fun closeDefaultInterfaceMonitor(listener: InterfaceUpdateListener) {
         DefaultNetworkMonitor.setListener(null)
+    }
+
+    // libbox >= 170d8315 added a neighbor (ARP/NDP) table monitor to the platform
+    // interface. Android does not expose the kernel neighbor table to apps, so we
+    // provide no-op implementations; the core degrades gracefully without it.
+    override fun startNeighborMonitor(listener: NeighborUpdateListener) {
+    }
+
+    override fun closeNeighborMonitor(listener: NeighborUpdateListener) {
+    }
+
+    // The core notifies the platform of its own TUN interface name so it can be
+    // excluded from underlying-interface selection. The exclusion itself is done
+    // core-side (InterfaceMonitor.MyInterface()); nothing is required from us here.
+    override fun registerMyInterface(name: String) {
+        Log.d("PlatformInterface", "registerMyInterface: $name")
     }
 
     override fun getInterfaces(): NetworkInterfaceIterator {
